@@ -20,7 +20,12 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello World from Real-time Bus Arrival!');
 	});
 
+	const anotherCommand = vscode.commands.registerCommand('real-time-bus-arrival.test', () => {
+		vscode.window.showInformationMessage('i am triggered by test');
+	});
+
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(anotherCommand);
 }
 
 // this method is called when your extension is deactivated
