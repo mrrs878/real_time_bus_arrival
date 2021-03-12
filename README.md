@@ -1,17 +1,25 @@
 <!--
  * @Author: your name
  * @Date: 2021-03-11 18:49:54
- * @LastEditTime: 2021-03-11 19:21:33
+ * @LastEditTime: 2021-03-12 17:13:10
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/README.md
 -->
-## 添加指令(cmd+shift+p)
+# 公交实时到站查询vscode插件
 
-1. `package.json`中的`contributes.command`字段注册指令`{"command": "commandId","title": "commandTitle"}`
+目前仅支持上海市公交
 
-2. `package.json`中的`activationEvents`添加`onCommand:commandId`
+## 功能
 
-3. 使用`registerCommand`添加指令对应的回调
+0. 实时查看某一公交线路站点和运行中车辆
+1. 订阅某一站点, 在设置好的时间下告知用户到站信息(比如订阅浦东25路-中科路华夏东路站, 7:30, 则会在7:00-7:30之间查询该公交到站信息并提示)
 
-4. `context.subscriptions.push`添加指令到插件中
+## 使用步骤
+
+0. 安装扩展
+1. 点击图标激活扩展
+2. 选择线路
+3. 选择站点
+4. 设置出发时间
+5. 确定订阅

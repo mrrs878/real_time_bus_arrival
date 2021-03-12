@@ -10,21 +10,84 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:real-time-bus-arrival.helloWorld",
-		"onCommand:real-time-bus-arrival.test"
+		"*"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "real-time-bus-arrival.helloWorld",
-				"title": "Hello World"
-			},
+        "command": "realTimeBus.refreshLine",
+        "icon": "$(refresh)",
+        "title": "刷新线路"
+      },
 			{
-				"command": "real-time-bus-arrival.test",
-				"title": "Test"
-			}
-		]
+        "command": "realTimeBus.addLine",
+        "icon": "$(add)",
+        "title": "添加线路"
+      },
+			{
+        "command": "realTimeBus.refreshLocation",
+        "icon": "$(refresh)",
+        "title": "刷新车辆信息"
+      },
+			{
+        "command": "realTimeBus.addLocation",
+        "icon": "$(add)",
+        "title": "添加车辆"
+      }
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id":"sidebar",
+					"title": "公交实时到站提醒",
+					"icon": "src/assets/img/busStation.png"
+				}
+			]
+		},
+		"menus": {
+			"view/title": [
+				{
+					"command": "realTimeBus.refreshLine",
+					"group": "navigation",
+					"when": "view == realTimeBusLine"
+				},
+				{
+					"command": "realTimeBus.addLine",
+					"group": "navigation",
+					"when": "view == realTimeBusLine"
+				},
+				{
+					"command": "realTimeBus.refreshLocation",
+					"group": "navigation",
+					"when": "view == realTimeBusLocation"
+				},
+				{
+					"command": "realTimeBus.addLocation",
+					"group": "navigation",
+					"when": "view == realTimeBusLocation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "realTimeBus.addLine",
+					"group": "inline",
+					"when": "view == realTimeBusLine"
+				}
+			]
+		},
+		"views": {
+			"sidebar":[
+				{
+					"id":"realTimeBusLine",
+					"name":"公交线路"
+				},
+				{
+					"id":"realTimeBusLocation",
+					"name":"到站提醒"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run package",
