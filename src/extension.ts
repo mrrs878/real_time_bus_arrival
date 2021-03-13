@@ -1,5 +1,14 @@
+/*
+ * @Author: your name
+ * @Date: 2021-03-13 11:30:34
+ * @LastEditTime: 2021-03-13 21:48:36
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \real_time_bus_arrival\src\extension.ts
+ */
 import * as vscode from 'vscode';
 import { TreeItemCollapsibleState } from 'vscode';
+import { initBusLine } from './activate/busLine';
 import { BusLineProvider, TreeItemNode } from './treeview/busLine';
 import { createWebView } from './webview/busLine';
 
@@ -13,6 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
 			TreeItemCollapsibleState.None,
 		)
 	));
+
+ 	initBusLine(context);
 
 	context.subscriptions.push(vscode.commands.registerCommand('realTimeBusLine.itemClick', (label) => {
 		const webView = createWebView(context, vscode.ViewColumn.Active, label);
