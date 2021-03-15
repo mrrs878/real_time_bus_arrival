@@ -92,12 +92,12 @@
 				{
 					"command": "realTimeBus.revertLine",
 					"group": "inline",
-					"when": "view == realTimeBusLine"
+					"when": "view == realTimeBusLine && viewItem == BusLineItem"
 				},
 				{
 					"command": "realTimeBus.refreshLine",
 					"group": "inline",
-					"when": "view == realTimeBusLine"
+					"when": "view == realTimeBusLine && viewItem == BusLineItem"
 				}
 			]
 		},
