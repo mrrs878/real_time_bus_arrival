@@ -1,12 +1,12 @@
 /*
  * @Author: your name
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-12 18:38:13
+ * @LastEditTime: 2021-03-15 19:10:18
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
  */
-import { TreeItem, TreeItemCollapsibleState, TreeDataProvider, ProviderResult, window } from 'vscode';
+import { TreeItem, TreeItemCollapsibleState, TreeDataProvider, ProviderResult, window, Event } from 'vscode';
 
 export class TreeItemNode extends TreeItem {
   constructor(
@@ -16,9 +16,11 @@ export class TreeItemNode extends TreeItem {
     super(label, collapsibleState);
   }
 
+  readonly contextValue = "TreeItemNode";
+
   command = {
     title: this.label,
-    command: 'realTimeBusLine.itemClick',
+    command: 'realTimeBusLine.click',
     tooltip: this.label,
     arguments: [
       this.label,
@@ -28,18 +30,35 @@ export class TreeItemNode extends TreeItem {
 
 export class BusLineProvider implements TreeDataProvider<TreeItemNode>{
   static children: ProviderResult<Array<TreeItemNode>> = [];
-
-  onDidChangeTreeData?: import("vscode").Event<TreeItemNode | null | undefined> | undefined; 
+  static activeChildrenLabel: string;
 
   getTreeItem(element: TreeItemNode): TreeItem | Thenable<TreeItem> {
     return element;
   }
 
-  getChildren(element?: TreeItemNode | undefined): ProviderResult<Array<TreeItemNode>> {
+  getChildren(): ProviderResult<Array<TreeItemNode>> {
+    console.log(111);
     return BusLineProvider.children;
   }
 
-  public static initTreeViewItem(children: ProviderResult<Array<TreeItemNode>>){
+  static refreshLines() {
+    console.log(BusLineProvider.activeChildrenLabel);
+  }
+
+  static refreshLine() {
+    console.log(BusLineProvider.activeChildrenLabel);
+  }
+
+  static revertLine() {}
+
+  static add() {}
+  
+  static click(label: string) {
+    BusLineProvider.activeChildrenLabel = label;
+    console.log(label);
+  }
+
+  static initTreeViewItem(children: ProviderResult<Array<TreeItemNode>>){
     BusLineProvider.children = children;
     const treeViewProvider = new BusLineProvider();
     window.registerTreeDataProvider('realTimeBusLine', treeViewProvider);
