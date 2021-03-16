@@ -1,17 +1,20 @@
 /*
  * @Author: your name
  * @Date: 2021-03-13 11:42:04
- * @LastEditTime: 2021-03-16 18:31:21
+ * @LastEditTime: 2021-03-16 19:26:32
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \real_time_bus_arrival\src\activate\busLine.ts
  */
 
-import { commands, ExtensionContext, window } from "vscode";
-import { BusLineProvider } from "../treeview/busLine";
+import { commands, ExtensionContext, window, workspace } from "vscode";
+import { BusLineProvider, BusLineTreeItem } from "../treeview/busLine";
 
 export function initBusLine(context: ExtensionContext) {
 	window.registerTreeDataProvider('realTimeBusLine', BusLineProvider.getInstance());
+  const configuration = workspace.getConfiguration('RealTimeBus');
+  const lineLabels: Array<string> = configuration.get("lines") || [];
+  lineLabels.forEach((label) => BusLineProvider.addLine(label));
 
   const refreshLinesCmd = commands.registerCommand('realTimeBus.refreshLines', () => {
     BusLineProvider.refreshLines();
