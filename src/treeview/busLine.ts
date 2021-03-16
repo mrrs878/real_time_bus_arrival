@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-15 23:37:56
+ * @LastEditTime: 2021-03-16 13:17:34
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -56,12 +56,16 @@ export class BusLineProvider implements TreeDataProvider<BusLineItem>{
     console.log(element);
   }
 
-  static add() {
-    window.showInformationMessage('add');
+  static addLine(label: string) {
     const configuration = workspace.getConfiguration('RealTimeBus');
     const lines: Array<string> = configuration.get("lines") || [];
-    configuration.update("lines", [...lines, '1110'], true);
-    BusLineProvider.refreshLines();
+    configuration.update("lines", [...lines, label], true);
+  }
+
+  static removeLine({ label }: BusLineItem) {
+    const configuration = workspace.getConfiguration('RealTimeBus');
+    const lines: Array<string> = configuration.get("lines") || [];
+    configuration.update("lines", lines.filter((item) => item !== label), true);
   }
   
   static click(element: BusLineItem) {

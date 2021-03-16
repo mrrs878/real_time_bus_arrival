@@ -1,21 +1,27 @@
 /*
  * @Author: your name
  * @Date: 2021-03-13 11:42:04
- * @LastEditTime: 2021-03-15 23:34:04
+ * @LastEditTime: 2021-03-16 13:09:57
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \real_time_bus_arrival\src\activate\busLine.ts
  */
 
-import { commands, ExtensionContext } from "vscode";
+import { commands, ExtensionContext, window } from "vscode";
 import { BusLineProvider } from "../treeview/busLine";
 
 export function initBusLine(context: ExtensionContext) {
   const refreshLinesCmd = commands.registerCommand('realTimeBus.refreshLines', () => {
     BusLineProvider.refreshLines();
   });
-  const addLineCmd = commands.registerCommand('realTimeBus.addLine', () => {
-    BusLineProvider.add();
+  const addLineCmd = commands.registerCommand('realTimeBus.addLine', async () => {
+    const value = await window.showInputBox({
+      placeHolder: '请输入正确的线路名称',
+    });
+    BusLineProvider.addLine(value as string);
+  });
+  const removeLineCmd = commands.registerCommand('realTimeBus.removeLine', (params) => {
+    BusLineProvider.removeLine(params);
   });
   const refreshLineCmd = commands.registerCommand('realTimeBus.refreshLine', (params) => {
     BusLineProvider.refreshLine(params);

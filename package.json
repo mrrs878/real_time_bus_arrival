@@ -26,6 +26,11 @@
 				"title": "添加线路"
 			},
 			{
+				"command": "realTimeBus.removeLine",
+				"icon": "$(remove)",
+				"title": "删除线路"
+			},
+			{
 				"command": "realTimeBus.refreshLine",
 				"icon": "$(refresh)",
 				"title": "刷新线路"
@@ -96,6 +101,11 @@
 				},
 				{
 					"command": "realTimeBus.refreshLine",
+					"group": "inline",
+					"when": "view == realTimeBusLine && viewItem == BusLineItem"
+				},
+				{
+					"command": "realTimeBus.removeLine",
 					"group": "inline",
 					"when": "view == realTimeBusLine && viewItem == BusLineItem"
 				}
