@@ -1,22 +1,34 @@
 /*
- * @Author: your name
+ * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-16 19:31:34
+ * @LastEditTime: 2021-03-16 23:12:10
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
  */
+import { clone } from 'ramda';
 import { TreeItem, TreeItemCollapsibleState, 
-  TreeDataProvider, ProviderResult, window, Event, EventEmitter, workspace } from 'vscode';
+  TreeDataProvider, Event, EventEmitter, workspace, ThemeIcon } from 'vscode';
 
-export class BusLineTreeItem extends TreeItem {
-  constructor(public readonly label: string) {
+const chevronDownIcon = new ThemeIcon('chevron-down');
+const chevronRightIcon = new ThemeIcon('chevron-right');
+
+export class BusLineTreeItem extends TreeItem implements IBusLine {
+  constructor(
+    public readonly label: string,
+    public readonly lineId = -1,
+    public readonly direction = true,
+  ) {
     super(label, TreeItemCollapsibleState.None);
+    this.direction = direction;
+    this.lineId = lineId;
   }
 
   readonly contextValue = "BusLineItem";
 
-  command = {
+  public iconPath = chevronRightIcon;
+
+  readonly command = {
     title: this.label,
     command: 'realTimeBusLine.click',
     tooltip: this.label,
@@ -54,32 +66,50 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
       action();
       this.instance._onDidChangeTreeData.fire();
       const configuration = workspace.getConfiguration('RealTimeBus');
-      configuration.update("lines", this.children.map(({ label }) => label), true);
+      configuration.update("lines", this.children.map(({ label, direction, lineId }) => ({
+        label, direction, lineId 
+      })), true);
       this.lock = false;
     }
   }
 
-  static refreshLine(element: BusLineTreeItem) {
-    console.log(element);
+  static refreshLine(treeItem: BusLineTreeItem) {
+    console.log(treeItem);
   }
 
-  static revertLine(element: BusLineTreeItem) {
-    console.log(element);
-    this.refreshLines();
+  static revertLine({ label, direction }: BusLineTreeItem) {
+    const index = this.children.findIndex((item) => item.label === label);
+    if (index === -1) {return;}
+    const tmp = clone(this.children);
+    tmp[index] = { ...tmp[index], direction: !direction };
+    this.children = tmp;
     this.refreshLines();
   }
 
   static addLine(label: string) {
     this.children = [...this.children, new BusLineTreeItem(label)];
-    BusLineProvider.refreshLines();
+    this.refreshLines();
   }
 
   static removeLine({ label }: BusLineTreeItem) {
     this.children = this.children.filter(((item) => item.label !== label));
-    BusLineProvider.refreshLines();
+    this.refreshLines();
+  }
+
+  static toggleLine(label: string, iconPath: ThemeIcon) {
+    const tmp = clone(this.children);
+    tmp.forEach((item) => item.iconPath = chevronRightIcon);
+    const index = tmp.findIndex((item) => item.label === label);
+    tmp[index].iconPath = iconPath.id === 'chevron-down' 
+      ? chevronRightIcon 
+      : chevronDownIcon;
+    this.children = tmp;
   }
   
-  static click(element: BusLineTreeItem) {
-    console.log(element);
+  static click(treeItem: BusLineTreeItem) {
+    treeItem.iconPath = treeItem.iconPath.id === 'chevron-down' 
+      ? chevronRightIcon 
+      : chevronDownIcon;
+    this.refreshLines();
   }
 }

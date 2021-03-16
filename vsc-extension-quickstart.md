@@ -1,8 +1,8 @@
 <!--
- * @Author: your name
+ * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-11 18:49:54
  * @LastEditTime: 2021-03-12 16:01:29
- * @LastEditors: your name
+ * @LastEditors: mrrs878@foxmail.com
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/vsc-extension-quickstart.md
 -->
