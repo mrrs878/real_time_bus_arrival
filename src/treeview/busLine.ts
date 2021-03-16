@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-16 13:17:34
+ * @LastEditTime: 2021-03-16 18:49:04
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -9,7 +9,7 @@
 import { TreeItem, TreeItemCollapsibleState, 
   TreeDataProvider, ProviderResult, window, Event, EventEmitter, workspace } from 'vscode';
 
-export class BusLineItem extends TreeItem {
+export class BusLineTreeItem extends TreeItem {
   constructor(public readonly label: string) {
     super(label, TreeItemCollapsibleState.None);
   }
@@ -26,16 +26,22 @@ export class BusLineItem extends TreeItem {
   };
 }
 
-export class BusLineProvider implements TreeDataProvider<BusLineItem>{
-  static children: ProviderResult<Array<BusLineItem>> = [];
+export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
+  static children: ProviderResult<Array<BusLineTreeItem>> = [];
   private static instance: BusLineProvider;
+
+  private _onDidChangeTreeData: EventEmitter<BusLineTreeItem | undefined | void> = new EventEmitter<BusLineTreeItem | undefined | void>();
+	readonly onDidChangeTreeData: Event<BusLineTreeItem | undefined | void> = this._onDidChangeTreeData.event;
   
-  getTreeItem(element: BusLineItem): TreeItem | Thenable<TreeItem> {
+  getTreeItem(element: BusLineTreeItem): TreeItem | Thenable<TreeItem> {
     return element;
   }
 
-  getChildren(): ProviderResult<Array<BusLineItem>> {
-    return BusLineProvider.children;
+  getChildren(): ProviderResult<Array<BusLineTreeItem>> {
+    console.log('getChildren');
+    const configuration = workspace.getConfiguration('RealTimeBus');
+    const lines: Array<string> = configuration.get("lines") || [];
+    return lines.map(item => new BusLineTreeItem(item));
   }
 
   static getInstance(): BusLineProvider {
@@ -43,38 +49,36 @@ export class BusLineProvider implements TreeDataProvider<BusLineItem>{
   }
 
   static refreshLines() {
-    const configuration = workspace.getConfiguration('RealTimeBus');
-    const lines: Array<string> = configuration.get("lines") || [];
-    BusLineProvider.children = lines.map(item => new BusLineItem(item));
+    this.instance._onDidChangeTreeData.fire();
   }
 
-  static refreshLine(element: BusLineItem) {
+  static refreshLine(element: BusLineTreeItem) {
     console.log(element);
   }
 
-  static revertLine(element: BusLineItem) {
+  static revertLine(element: BusLineTreeItem) {
     console.log(element);
+    this.refreshLines();
+    this.refreshLines();
   }
 
   static addLine(label: string) {
     const configuration = workspace.getConfiguration('RealTimeBus');
     const lines: Array<string> = configuration.get("lines") || [];
     configuration.update("lines", [...lines, label], true);
+    this.refreshLines();
+    this.refreshLines();
   }
 
-  static removeLine({ label }: BusLineItem) {
+  static removeLine({ label }: BusLineTreeItem) {
     const configuration = workspace.getConfiguration('RealTimeBus');
     const lines: Array<string> = configuration.get("lines") || [];
     configuration.update("lines", lines.filter((item) => item !== label), true);
+    this.refreshLines();
+    this.refreshLines();
   }
   
-  static click(element: BusLineItem) {
+  static click(element: BusLineTreeItem) {
     console.log(element);
-  }
-
-  static initTreeViewItem(children: ProviderResult<Array<BusLineItem>>){
-    BusLineProvider.children = children;
-    const treeViewProvider = new BusLineProvider();
-    window.registerTreeDataProvider('realTimeBusLine', treeViewProvider);
   }
 }
