@@ -1,16 +1,13 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-13 11:30:34
- * @LastEditTime: 2021-03-16 18:30:46
+ * @LastEditTime: 2021-03-17 14:20:08
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \real_time_bus_arrival\src\extension.ts
  */
 import * as vscode from 'vscode';
-import { TreeItemCollapsibleState, window } from 'vscode';
 import { initBusLine } from './activate/busLine';
-import { getBusBase } from './api';
-import { BusLineProvider, BusLineTreeItem } from './treeview/busLine';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -20,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// 	console.log(res);
 	// });
 
- 	initBusLine(context);
+ 	initBusLine();
 }
 
 export function deactivate() {}

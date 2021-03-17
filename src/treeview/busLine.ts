@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-17 13:02:23
+ * @LastEditTime: 2021-03-17 15:39:07
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -9,9 +9,12 @@
 import { clone } from 'ramda';
 import { TreeItem, TreeItemCollapsibleState, 
   TreeDataProvider, Event, EventEmitter, workspace, ThemeIcon, window, ProgressLocation } from 'vscode';
+import { getBusBase, getBusStops } from '../api';
 
 const chevronDownIcon = new ThemeIcon('chevron-down');
 const chevronRightIcon = new ThemeIcon('chevron-right');
+const circleOutlineIcon = new ThemeIcon('circle-outline');
+const circleFilledIcon = new ThemeIcon('circle-filled');
 
 export class BusLineTreeItem extends TreeItem implements IBusLine {
   constructor(
@@ -19,25 +22,30 @@ export class BusLineTreeItem extends TreeItem implements IBusLine {
     public readonly lineId = -1,
     public readonly direction = true,
     public readonly collapse = TreeItemCollapsibleState.Collapsed,
+    public readonly icon?: ThemeIcon,
   ) {
     super(label, collapse);
     this.direction = direction;
     this.lineId = lineId;
+    this.iconPath = icon;
   }
 
   readonly contextValue = "BusLineItem";
-
-  readonly command = {
-    title: this.label,
-    command: 'realTimeBusLine.click',
-    tooltip: this.label,
-    arguments: [
-      this,
-    ]
-  };
 }
 
-export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
+export class BusStopTreeItem extends TreeItem {
+  constructor(
+    public readonly label: string,
+    public readonly icon: ThemeIcon,
+  ) {
+    super(label, TreeItemCollapsibleState.None);
+    this.iconPath = icon;
+  }
+
+  readonly contextValue = "BusStopTreeItem";
+}
+
+export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStopTreeItem>{
   private static children: Array<BusLineTreeItem> = [];
   private static instance: BusLineProvider;
   private static lock = false;
@@ -47,15 +55,18 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
 	readonly onDidChangeTreeData: Event<BusLineTreeItem | undefined | void>
     = this._onDidChangeTreeData.event;
   
-  getTreeItem(element: BusLineTreeItem): TreeItem | Thenable<TreeItem> {
+  getTreeItem(element: BusLineTreeItem) {
     return element;
   }
 
-  getChildren(treeItem: BusLineTreeItem): Array<BusLineTreeItem> {
-    if (treeItem) {return [
-      new BusLineTreeItem(`${Date.now()}`, -1, true, TreeItemCollapsibleState.None),
-      new BusLineTreeItem('2', -1, true, TreeItemCollapsibleState.None),
-    ];}
+  async getChildren(treeItem: BusLineTreeItem|BusStopTreeItem) {
+    if (treeItem) {
+      console.log(111);
+      const name = encodeURIComponent(treeItem.label);
+      const { line_id } = await getBusBase({ name });
+      const busStops = await getBusStops({ name, lineid: line_id });
+      return busStops.lineResults0.stops.map(({ zdmc }) => new BusStopTreeItem(zdmc, circleOutlineIcon));
+    }
     return BusLineProvider.children;
   }
 
@@ -77,21 +88,26 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
   }
 
   static refreshLine(treeItem: BusLineTreeItem) {
-    if (!this.lock) {
-      this.lock = true;
-      window.withProgress({
-        location: ProgressLocation.Notification,
-        title: `刷新${treeItem.label}线路信息中...`,
-        cancellable: true
-      }, (progress, token) => {
+    if (this.lock) {return;}
+    this.lock = true;
+    window.withProgress({
+      location: ProgressLocation.Notification,
+      title: `刷新${treeItem.label}线路信息中...`,
+      cancellable: true
+    }, async (progress, token) => {
+      try {
         token.onCancellationRequested(() => {
           window.showInformationMessage(`取消刷新${treeItem.label}线路信息`);
         });
         this.instance._onDidChangeTreeData.fire(treeItem);
         this.lock = false;
         return Promise.resolve();
-      });
-    }
+      } catch (e) {
+        window.showErrorMessage(e.toString());
+        this.lock = false;
+        return Promise.resolve();
+      }
+    });
   }
 
   static revertLine({ label, direction }: BusLineTreeItem) {
@@ -121,10 +137,5 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
       ? chevronRightIcon 
       : chevronDownIcon;
     this.children = tmp;
-  }
-  
-  static click(treeItem: BusLineTreeItem) {
-    console.log(treeItem);
-    // this.refreshLines();
   }
 }
