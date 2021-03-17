@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-15 10:36:38
- * @LastEditTime: 2021-03-17 15:15:38
+ * @LastEditTime: 2021-03-17 23:35:39
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/interface/ajaxRequest.d.ts
@@ -12,12 +12,12 @@ interface IGetBusBaseReq {
 
 interface IGetBusStopsReq {
   name: string;
-  lineid: string;
+  lineid: number;
 }
 
 interface IGetArriveBaseReq {
   name: string;
-  lineid: number;
+  lineid: string;
   stopid: string;
   direction: number;
 }

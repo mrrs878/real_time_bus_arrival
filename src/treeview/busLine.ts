@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-17 15:39:07
+ * @LastEditTime: 2021-03-17 23:37:35
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -9,18 +9,16 @@
 import { clone } from 'ramda';
 import { TreeItem, TreeItemCollapsibleState, 
   TreeDataProvider, Event, EventEmitter, workspace, ThemeIcon, window, ProgressLocation } from 'vscode';
-import { getBusBase, getBusStops } from '../api';
+import { getArriveBase, getBusBase, getBusStops } from '../api';
 
-const chevronDownIcon = new ThemeIcon('chevron-down');
-const chevronRightIcon = new ThemeIcon('chevron-right');
+const arrowDown = new ThemeIcon('arrow-down');
 const circleOutlineIcon = new ThemeIcon('circle-outline');
-const circleFilledIcon = new ThemeIcon('circle-filled');
 
 export class BusLineTreeItem extends TreeItem implements IBusLine {
   constructor(
     public readonly label: string,
     public readonly lineId = -1,
-    public readonly direction = true,
+    public direction = true,
     public readonly collapse = TreeItemCollapsibleState.Collapsed,
     public readonly icon?: ThemeIcon,
   ) {
@@ -31,6 +29,8 @@ export class BusLineTreeItem extends TreeItem implements IBusLine {
   }
 
   readonly contextValue = "BusLineItem";
+
+  public stops: Array<any> = [];
 }
 
 export class BusStopTreeItem extends TreeItem {
@@ -43,6 +43,13 @@ export class BusStopTreeItem extends TreeItem {
   }
 
   readonly contextValue = "BusStopTreeItem";
+
+  readonly command = {
+    title: this.label,
+    tooltip: '获取站点车辆信息',
+    command: 'realTimeBus.getStopInfo',
+    arguments: [this.label]
+  };
 }
 
 export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStopTreeItem>{
@@ -59,13 +66,32 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
     return element;
   }
 
-  async getChildren(treeItem: BusLineTreeItem|BusStopTreeItem) {
-    if (treeItem) {
-      console.log(111);
-      const name = encodeURIComponent(treeItem.label);
-      const { line_id } = await getBusBase({ name });
-      const busStops = await getBusStops({ name, lineid: line_id });
-      return busStops.lineResults0.stops.map(({ zdmc }) => new BusStopTreeItem(zdmc, circleOutlineIcon));
+  async getChildren(item: BusLineTreeItem|BusStopTreeItem) {
+    if (item) {
+      const treeItem = item as BusLineTreeItem;
+      if (treeItem.stops.length !== 0) {
+        const stops = (treeItem.direction ? treeItem.stops : treeItem.stops.reverse());
+        const tmp = stops.slice(0, stops.length - 1).map(
+          ({ zdmc }) => new BusStopTreeItem(zdmc, circleOutlineIcon)
+        );
+        tmp.push(new BusStopTreeItem(stops[stops.length - 1].zdmc, arrowDown));
+        return tmp;
+      }
+      try {
+        const name = encodeURIComponent(treeItem.label);
+        const lineid = treeItem.lineId;
+        const busStops = await getBusStops({ name, lineid });
+        treeItem.stops = busStops.lineResults0.stops;
+        const stops = busStops[treeItem.direction ? 'lineResults0' : 'lineResults1'].stops;
+        const tmp = stops.slice(0, stops.length - 1).map(
+          ({ zdmc }) => new BusStopTreeItem(zdmc, circleOutlineIcon)
+        );
+        tmp.push(new BusStopTreeItem(stops[stops.length - 1].zdmc, arrowDown));
+        return tmp;
+      } catch (e) {
+        window.showErrorMessage('获取线路信息失败，刷新重试');
+        return [];
+      }
     }
     return BusLineProvider.children;
   }
@@ -90,38 +116,26 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
   static refreshLine(treeItem: BusLineTreeItem) {
     if (this.lock) {return;}
     this.lock = true;
-    window.withProgress({
-      location: ProgressLocation.Notification,
-      title: `刷新${treeItem.label}线路信息中...`,
-      cancellable: true
-    }, async (progress, token) => {
-      try {
-        token.onCancellationRequested(() => {
-          window.showInformationMessage(`取消刷新${treeItem.label}线路信息`);
-        });
-        this.instance._onDidChangeTreeData.fire(treeItem);
-        this.lock = false;
-        return Promise.resolve();
-      } catch (e) {
-        window.showErrorMessage(e.toString());
-        this.lock = false;
-        return Promise.resolve();
-      }
-    });
+    this.instance._onDidChangeTreeData.fire(treeItem);
+    this.lock = false;
   }
 
-  static revertLine({ label, direction }: BusLineTreeItem) {
-    const index = this.children.findIndex((item) => item.label === label);
-    if (index === -1) {return;}
-    const tmp = clone(this.children);
-    tmp[index] = { ...tmp[index], direction: !direction };
-    this.children = tmp;
-    this.refreshLines();
+  static revertLine(treeItem: BusLineTreeItem) {
+    treeItem.direction = !treeItem.direction;
+    this.refreshLine(treeItem);
   }
 
-  static addLine(label: string) {
-    this.children = [...this.children, new BusLineTreeItem(label)];
-    this.refreshLines();
+  static async addLine(label: string) {
+    try {
+      const name = encodeURIComponent(label);
+      const res = await getBusBase({ name });
+      this.children = [...this.children, new BusLineTreeItem(label, parseInt(res.line_id, 10))];
+      this.refreshLines();
+    } catch (e) {
+      window.showErrorMessage('获取线路信息失败，刷新重试');
+      this.children = [...this.children, new BusLineTreeItem(label)];
+      this.refreshLines();
+    }
   }
 
   static removeLine({ label }: BusLineTreeItem) {
@@ -129,13 +143,23 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
     this.refreshLines();
   }
 
-  static toggleLine(label: string, iconPath: ThemeIcon) {
-    const tmp = clone(this.children);
-    tmp.forEach((item) => item.iconPath = chevronRightIcon);
-    const index = tmp.findIndex((item) => item.label === label);
-    tmp[index].iconPath = iconPath.id === 'chevron-down' 
-      ? chevronRightIcon 
-      : chevronDownIcon;
-    this.children = tmp;
+  static async getStopInfo(label: string) {
+    try {
+      const treeItem = this.children.find((item) => item.label === label);
+      if (!treeItem) {return;}
+      const stop = treeItem.stops.find((item) => item.zdmc === label);
+      if (!stop) {return;}
+      const name = encodeURIComponent(label);
+      const res = await getArriveBase({ 
+        name, 
+        lineid: treeItem.id || '', 
+        stopid: stop.id, 
+        direction: 0
+      });
+      console.log(res);
+      window.showInformationMessage(`获取${label}站点信息`);
+    } catch (e) {
+      window.showErrorMessage(`获取${label}站点信息失败，点击重试`);
+    }
   }
 }
