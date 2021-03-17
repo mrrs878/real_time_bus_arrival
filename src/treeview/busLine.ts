@@ -1,14 +1,14 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-16 23:12:10
+ * @LastEditTime: 2021-03-17 13:02:23
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
  */
 import { clone } from 'ramda';
 import { TreeItem, TreeItemCollapsibleState, 
-  TreeDataProvider, Event, EventEmitter, workspace, ThemeIcon } from 'vscode';
+  TreeDataProvider, Event, EventEmitter, workspace, ThemeIcon, window, ProgressLocation } from 'vscode';
 
 const chevronDownIcon = new ThemeIcon('chevron-down');
 const chevronRightIcon = new ThemeIcon('chevron-right');
@@ -18,15 +18,14 @@ export class BusLineTreeItem extends TreeItem implements IBusLine {
     public readonly label: string,
     public readonly lineId = -1,
     public readonly direction = true,
+    public readonly collapse = TreeItemCollapsibleState.Collapsed,
   ) {
-    super(label, TreeItemCollapsibleState.None);
+    super(label, collapse);
     this.direction = direction;
     this.lineId = lineId;
   }
 
   readonly contextValue = "BusLineItem";
-
-  public iconPath = chevronRightIcon;
 
   readonly command = {
     title: this.label,
@@ -52,7 +51,11 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
     return element;
   }
 
-  getChildren(): Array<BusLineTreeItem> {
+  getChildren(treeItem: BusLineTreeItem): Array<BusLineTreeItem> {
+    if (treeItem) {return [
+      new BusLineTreeItem(`${Date.now()}`, -1, true, TreeItemCollapsibleState.None),
+      new BusLineTreeItem('2', -1, true, TreeItemCollapsibleState.None),
+    ];}
     return BusLineProvider.children;
   }
 
@@ -74,7 +77,21 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
   }
 
   static refreshLine(treeItem: BusLineTreeItem) {
-    console.log(treeItem);
+    if (!this.lock) {
+      this.lock = true;
+      window.withProgress({
+        location: ProgressLocation.Notification,
+        title: `刷新${treeItem.label}线路信息中...`,
+        cancellable: true
+      }, (progress, token) => {
+        token.onCancellationRequested(() => {
+          window.showInformationMessage(`取消刷新${treeItem.label}线路信息`);
+        });
+        this.instance._onDidChangeTreeData.fire(treeItem);
+        this.lock = false;
+        return Promise.resolve();
+      });
+    }
   }
 
   static revertLine({ label, direction }: BusLineTreeItem) {
@@ -107,9 +124,7 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem>{
   }
   
   static click(treeItem: BusLineTreeItem) {
-    treeItem.iconPath = treeItem.iconPath.id === 'chevron-down' 
-      ? chevronRightIcon 
-      : chevronDownIcon;
-    this.refreshLines();
+    console.log(treeItem);
+    // this.refreshLines();
   }
 }
