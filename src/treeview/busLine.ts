@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-18 19:30:20
+ * @LastEditTime: 2021-03-18 23:21:32
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -25,6 +25,7 @@ export class BusLineTreeItem extends TreeItem implements IBusLine {
     public readonly lineid = '',
     public direction = true,
     public readonly collapse = TreeItemCollapsibleState.Collapsed,
+    public readonly timeInfo: Omit<IGetBusBaseRes, 'line_id'|'line_name'>|undefined = undefined,
     public readonly icon?: ThemeIcon,
   ) {
     super(label, collapse);
@@ -35,7 +36,8 @@ export class BusLineTreeItem extends TreeItem implements IBusLine {
 
   readonly contextValue = "BusLineItem";
 
-  public stops: Array<any> = [];
+  public stops0: Array<any> = [];
+  public stops1: Array<any> = [];
 }
 
 export class BusStopTreeItem extends TreeItem {
@@ -78,9 +80,8 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
   async getChildren(item: BusLineTreeItem|BusStopTreeItem) {
     if (item) {
       const treeItem = item as BusLineTreeItem;
-      if (treeItem.stops.length !== 0) {
-        // todo
-        const stops = (treeItem.direction ? treeItem.stops : treeItem.stops.reverse());
+      if (treeItem.stops0.length !== 0) {
+        const stops = (treeItem.direction ? treeItem.stops0 : treeItem.stops1);
         const { label, lineid, direction } = treeItem;
         const tmp = stops.slice(0, stops.length - 1).map(
           ({ zdmc, id }) => new BusStopTreeItem(zdmc, circleOutlineIcon, id, { label, lineid, direction: direction ? 0 : 1 })
@@ -94,8 +95,8 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
         const lineid = treeItem.lineid;
         const busStops = await getBusStops({ name, lineid });
         const stops = busStops[treeItem.direction ? 'lineResults0' : 'lineResults1'].stops;
-        treeItem.stops = stops;
-        console.log(stops);
+        treeItem.stops0 = busStops.lineResults0.stops;
+        treeItem.stops1 = busStops.lineResults1.stops;
         const { label, direction } = treeItem;
         const tmp = stops.slice(0, stops.length - 1).map(
           ({ zdmc, id }) => new BusStopTreeItem(zdmc, circleOutlineIcon, id, { label, lineid, direction: direction ? 0 : 1 })
@@ -140,16 +141,20 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
     this.refreshLine(treeItem);
   }
 
-  static async addLine(label: string) {
+  static async addLine(label: string, direction = true) {
     try {
       const name = encodeURIComponent(label);
       const res = await getBusBase({ name });
-      this.children = [...this.children, new BusLineTreeItem(label, res.line_id)];
+      this.children = [...this.children, new BusLineTreeItem(label, 
+        res.line_id, 
+        direction, 
+        TreeItemCollapsibleState.Collapsed, 
+        res,
+      )];
       this.refreshLines();
     } catch (e) {
-      window.showErrorMessage('获取线路信息失败，刷新重试');
-      this.children = [...this.children, new BusLineTreeItem(label)];
-      this.refreshLines();
+      const action = await window.showErrorMessage('获取线路信息失败，刷新重试', '刷新');
+      if (action === '刷新') {BusLineProvider.addLine(label);}
     }
   }
 
@@ -168,17 +173,15 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
         stopid, 
         direction,
       });
-      console.log({
-        name, 
-        lineid, 
-        stopid, 
-        direction
-      });
-      
+      if (!cars || cars.length === 0) {
+        window.showInformationMessage(`暂无${label}站点车辆信息，稍后重试`);
+        return;
+      }
       window.showInformationMessage(`距离${label}最近一辆车还有${cars[0].stopdis}站,${(parseInt(cars[0].time, 10) / 60) >> 0}分钟到达`);
     } catch (e) {
       console.log(e);
-      window.showErrorMessage(`获取${label}站点信息失败，点击重试`);
+      const action = await window.showErrorMessage(`获取${label}站点信息失败，点击重试`, '重试');
+      if (action === '重试'){BusLineProvider.getStopInfo({ label, stopid, lineInfo });}
     }
   }
 }

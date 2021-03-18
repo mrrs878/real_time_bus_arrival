@@ -14,7 +14,7 @@ export function initBusLine() {
 	window.registerTreeDataProvider('realTimeBusLine', BusLineProvider.getInstance());
   const configuration = workspace.getConfiguration('RealTimeBus');
   const lineLabels: Array<IBusLine> = configuration.get("lines") || [];
-  lineLabels.forEach(({ label }) => BusLineProvider.addLine(label));
+  lineLabels.forEach(({ label, direction }) => BusLineProvider.addLine(label, direction));
 
   commands.registerCommand('realTimeBus.refreshLines', () => {
     BusLineProvider.refreshLines();
