@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-18 13:15:38
+ * @LastEditTime: 2021-03-18 19:30:20
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -79,6 +79,7 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
     if (item) {
       const treeItem = item as BusLineTreeItem;
       if (treeItem.stops.length !== 0) {
+        // todo
         const stops = (treeItem.direction ? treeItem.stops : treeItem.stops.reverse());
         const { label, lineid, direction } = treeItem;
         const tmp = stops.slice(0, stops.length - 1).map(
@@ -92,8 +93,9 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
         const name = encodeURIComponent(treeItem.label);
         const lineid = treeItem.lineid;
         const busStops = await getBusStops({ name, lineid });
-        treeItem.stops = busStops.lineResults0.stops;
         const stops = busStops[treeItem.direction ? 'lineResults0' : 'lineResults1'].stops;
+        treeItem.stops = stops;
+        console.log(stops);
         const { label, direction } = treeItem;
         const tmp = stops.slice(0, stops.length - 1).map(
           ({ zdmc, id }) => new BusStopTreeItem(zdmc, circleOutlineIcon, id, { label, lineid, direction: direction ? 0 : 1 })
