@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-18 23:21:32
+ * @LastEditTime: 2021-03-20 12:58:51
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -25,7 +25,7 @@ export class BusLineTreeItem extends TreeItem implements IBusLine {
     public readonly lineid = '',
     public direction = true,
     public readonly collapse = TreeItemCollapsibleState.Collapsed,
-    public readonly timeInfo: Omit<IGetBusBaseRes, 'line_id'|'line_name'>|undefined = undefined,
+    public readonly timeInfo: Omit<IBusBase, 'line_id'|'line_name'>|undefined = undefined,
     public readonly icon?: ThemeIcon,
   ) {
     super(label, collapse);
@@ -93,10 +93,12 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
       try {
         const name = encodeURIComponent(treeItem.label);
         const lineid = treeItem.lineid;
-        const busStops = await getBusStops({ name, lineid });
-        const stops = busStops[treeItem.direction ? 'lineResults0' : 'lineResults1'].stops;
-        treeItem.stops0 = busStops.lineResults0.stops;
-        treeItem.stops1 = busStops.lineResults1.stops;
+        console.log({ name, lineid });
+        
+        const { data } = await getBusStops({ name, lineid });
+        const stops = data[treeItem.direction ? 'lineResults0' : 'lineResults1'].stops;
+        treeItem.stops0 = data.lineResults0.stops;
+        treeItem.stops1 = data.lineResults1.stops;
         const { label, direction } = treeItem;
         const tmp = stops.slice(0, stops.length - 1).map(
           ({ zdmc, id }) => new BusStopTreeItem(zdmc, circleOutlineIcon, id, { label, lineid, direction: direction ? 0 : 1 })
@@ -144,15 +146,16 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
   static async addLine(label: string, direction = true) {
     try {
       const name = encodeURIComponent(label);
-      const res = await getBusBase({ name });
+      const { data } = await getBusBase({ name });
       this.children = [...this.children, new BusLineTreeItem(label, 
-        res.line_id, 
+        data.line_id, 
         direction, 
         TreeItemCollapsibleState.Collapsed, 
-        res,
+        data,
       )];
       this.refreshLines();
     } catch (e) {
+      console.log(e);
       const action = await window.showErrorMessage('获取线路信息失败，刷新重试', '刷新');
       if (action === '刷新') {BusLineProvider.addLine(label);}
     }
@@ -167,16 +170,17 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
     try {
       const { lineid, direction } = lineInfo;
       const name = encodeURIComponent(lineInfo.label);
-      const { cars } = await getArriveBase({ 
+      const { data } = await getArriveBase({ 
         name, 
         lineid, 
         stopid, 
         direction,
       });
-      if (!cars || cars.length === 0) {
+      if (!data?.cars || data.cars.length === 0) {
         window.showInformationMessage(`暂无${label}站点车辆信息，稍后重试`);
         return;
       }
+      const { cars } = data;
       window.showInformationMessage(`距离${label}最近一辆车还有${cars[0].stopdis}站,${(parseInt(cars[0].time, 10) / 60) >> 0}分钟到达`);
     } catch (e) {
       console.log(e);
