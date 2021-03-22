@@ -8,6 +8,9 @@
 -->
 # 公交实时到站查询vscode插件
 
+
+[![Node.js CI](https://github.com/mrrs878/real_time_bus_arrival/actions/workflows/node.js.yml/badge.svg)](https://github.com/mrrs878/real_time_bus_arrival/actions/workflows/node.js.yml)
+
 目前仅支持上海市公交
 
 ## 功能
