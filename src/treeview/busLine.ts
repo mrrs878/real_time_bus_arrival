@@ -1,11 +1,12 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-20 12:58:51
+ * @LastEditTime: 2021-03-22 22:49:04
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
  */
+import { clone } from 'ramda';
 import { TreeItem, TreeItemCollapsibleState, 
   TreeDataProvider, Event, EventEmitter, workspace, ThemeIcon, window, ProgressLocation } from 'vscode';
 import { getArriveBase, getBusBase, getBusStops } from '../api';
@@ -79,32 +80,31 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
 
   async getChildren(item: BusLineTreeItem|BusStopTreeItem) {
     if (item) {
-      const treeItem = item as BusLineTreeItem;
-      if (treeItem.stops0.length !== 0) {
-        const stops = (treeItem.direction ? treeItem.stops0 : treeItem.stops1);
-        const { label, lineid, direction } = treeItem;
-        const tmp = stops.slice(0, stops.length - 1).map(
-          ({ zdmc, id }) => new BusStopTreeItem(zdmc, circleOutlineIcon, id, { label, lineid, direction: direction ? 0 : 1 })
-        );
-        const { zdmc, id } = stops[stops.length - 1];
-        tmp.push(new BusStopTreeItem(zdmc, arrowDown, id, { label, lineid, direction: direction ? 0 : 1 }));
-        return tmp;
-      }
       try {
-        const name = encodeURIComponent(treeItem.label);
-        const lineid = treeItem.lineid;
-        console.log({ name, lineid });
-        
-        const { data } = await getBusStops({ name, lineid });
-        const stops = data[treeItem.direction ? 'lineResults0' : 'lineResults1'].stops;
-        treeItem.stops0 = data.lineResults0.stops;
-        treeItem.stops1 = data.lineResults1.stops;
-        const { label, direction } = treeItem;
-        const tmp = stops.slice(0, stops.length - 1).map(
+        const treeItem = item as BusLineTreeItem;
+        let stops: Array<any> = [];
+        const { label, lineid, direction, timeInfo } = treeItem;
+        if (treeItem.stops0.length === 0) {
+          const name = encodeURIComponent(treeItem.label);
+          const lineid = treeItem.lineid;
+          console.log({ name, lineid });
+          
+          const { data } = await getBusStops({ name, lineid });
+          stops = data[direction ? 'lineResults0' : 'lineResults1'].stops;
+          treeItem.stops0 = data.lineResults0.stops;
+          treeItem.stops1 = data.lineResults1.stops;
+        } else {
+          stops = (direction ? treeItem.stops0 : treeItem.stops1);
+        }
+        const tmp = stops.slice(1, stops.length - 1).map(
           ({ zdmc, id }) => new BusStopTreeItem(zdmc, circleOutlineIcon, id, { label, lineid, direction: direction ? 0 : 1 })
         );
-        const { zdmc, id } = stops[stops.length - 1];
-        tmp.push(new BusStopTreeItem(zdmc, arrowDown, id, { label, lineid, direction: direction ? 0 : 1 }));
+        const endStop = clone(stops[stops.length - 1]);
+        const startStop = clone(stops[0]);
+        const { start_earlytime, start_latetime, end_earlytime, end_latetime } = timeInfo || {};
+        const time = direction ? `${start_earlytime}--${start_latetime}` : `${end_earlytime}--${end_latetime}`;
+        tmp.unshift(new BusStopTreeItem(`${startStop.zdmc}: ${time}`, circleOutlineIcon, startStop.id, { label, lineid, direction: direction ? 0 : 1 }));
+        tmp.push(new BusStopTreeItem(endStop.zdmc, arrowDown, endStop.id, { label, lineid, direction: direction ? 0 : 1 }));
         return tmp;
       } catch (e) {
         window.showErrorMessage('获取线路信息失败，刷新重试');
