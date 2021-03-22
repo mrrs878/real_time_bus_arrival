@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-15 14:11:10
- * @LastEditTime: 2021-03-20 12:56:44
+ * @LastEditTime: 2021-03-22 10:08:16
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/interface/ajaxResponse.d.ts
@@ -21,10 +21,5 @@ interface IGetBusBaseRes extends IBaseRes<IBusBase> {}
 interface IGetBusStopsRes extends IBaseRes<IBusStops> {}
 
 interface IGetArriveBaseRes extends IBaseRes<{
-  cars: Array<{
-    stopdis: string;
-    distance: string;
-    terminal: string;
-    time: string;
-  }>;
+  cars: Array<IArrivalCar>;
 }> {}
