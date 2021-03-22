@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-15 10:41:50
- * @LastEditTime: 2021-03-20 12:56:34
+ * @LastEditTime: 2021-03-22 10:08:06
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/interface/index.d.ts
@@ -40,4 +40,11 @@ interface IBusStops {
     }>,
     direction: boolean;
   };
+}
+
+interface IArrivalCar {
+  stopdis: string;
+  distance: string;
+  terminal: string;
+  time: string;
 }

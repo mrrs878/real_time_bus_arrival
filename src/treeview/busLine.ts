@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-20 12:58:51
+ * @LastEditTime: 2021-03-22 10:25:12
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -93,8 +93,6 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
       try {
         const name = encodeURIComponent(treeItem.label);
         const lineid = treeItem.lineid;
-        console.log({ name, lineid });
-        
         const { data } = await getBusStops({ name, lineid });
         const stops = data[treeItem.direction ? 'lineResults0' : 'lineResults1'].stops;
         treeItem.stops0 = data.lineResults0.stops;
