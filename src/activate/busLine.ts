@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-13 11:42:04
- * @LastEditTime: 2021-03-17 23:26:45
+ * @LastEditTime: 2021-03-23 19:07:54
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \real_time_bus_arrival\src\activate\busLine.ts
@@ -12,7 +12,7 @@ import { BusLineProvider } from "../treeview/busLine";
 
 export function initBusLine() {
 	window.registerTreeDataProvider('realTimeBusLine', BusLineProvider.getInstance());
-  const configuration = workspace.getConfiguration('RealTimeBus');
+  const configuration = workspace.getConfiguration('realTimeBus');
   const lineLabels: Array<IBusLine> = configuration.get("lines") || [];
   lineLabels.forEach(({ label, direction }) => BusLineProvider.addLine(label, direction));
 

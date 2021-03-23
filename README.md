@@ -1,7 +1,7 @@
 <!--
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-11 18:49:54
- * @LastEditTime: 2021-03-15 10:41:28
+ * @LastEditTime: 2021-03-23 19:24:55
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/README.md
@@ -9,7 +9,7 @@
 # 公交实时到站查询vscode插件
 
 
-[![Node.js CI](https://github.com/mrrs878/real_time_bus_arrival/actions/workflows/node.js.yml/badge.svg)](https://github.com/mrrs878/real_time_bus_arrival/actions/workflows/node.js.yml)
+[![Node.js CI](https://github.com/mrrs878/real_time_bus_arrival/actions/workflows/node.js.yml/badge.png)](https://github.com/mrrs878/real_time_bus_arrival/actions/workflows/node.js.yml)
 
 目前仅支持上海市公交
 
