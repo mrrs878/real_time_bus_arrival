@@ -71,7 +71,7 @@
 				{
 					"id": "sidebar",
 					"title": "公交实时到站提醒",
-					"icon": "src/assets/img/metro.svg"
+					"icon": "media/metro.svg"
 				}
 			]
 		},
