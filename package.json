@@ -4,7 +4,7 @@
 	"publisher": "Real-timeBusArrival",
 	"repository": {
 		"url": "https://github.com/mrrs878/real_time_bus_arrival",
-		"type": "github"
+		"type": "git"
 	},
 	"description": "",
 	"version": "0.0.2",
