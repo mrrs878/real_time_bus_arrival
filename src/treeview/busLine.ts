@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-22 22:57:19
+ * @LastEditTime: 2021-03-25 23:28:17
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -123,10 +123,8 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
       this.lock = true;
       action();
       this.instance._onDidChangeTreeData.fire();
-      const configuration = workspace.getConfiguration('RealTimeBus');
-      configuration.update("lines", this.children.map(({ label, direction, lineid: lineId }) => ({
-        label, direction, lineId 
-      })), true);
+      // todo
+      this.syncChildren2ConfigFile();
       this.lock = false;
     }
   }
@@ -187,5 +185,12 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
       const action = await window.showErrorMessage(`获取${label}站点信息失败，点击重试`, '重试');
       if (action === '重试'){BusLineProvider.getStopInfo({ label, stopid, lineInfo });}
     }
+  }
+
+  static syncChildren2ConfigFile() {
+    const configuration = workspace.getConfiguration('realTimeBus');
+    configuration.update("lines", this.children.map(({ label, direction, lineid: lineId }) => ({
+      label, direction, lineId 
+    })), true);
   }
 }
