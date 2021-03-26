@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-25 23:28:17
+ * @LastEditTime: 2021-03-26 10:07:15
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
@@ -123,8 +123,6 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
       this.lock = true;
       action();
       this.instance._onDidChangeTreeData.fire();
-      // todo
-      this.syncChildren2ConfigFile();
       this.lock = false;
     }
   }
@@ -139,6 +137,7 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
   static revertLine(treeItem: BusLineTreeItem) {
     treeItem.direction = !treeItem.direction;
     this.refreshLine(treeItem);
+    this.syncChildren2ConfigFile();
   }
 
   static async addLine(label: string, direction = true) {
@@ -162,6 +161,7 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
   static removeLine({ label }: BusLineTreeItem) {
     this.children = this.children.filter(((item) => item.label !== label));
     this.refreshLines();
+    this.syncChildren2ConfigFile();
   }
 
   static async getStopInfo({ label, stopid, lineInfo }: any) {
@@ -192,5 +192,12 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
     configuration.update("lines", this.children.map(({ label, direction, lineid: lineId }) => ({
       label, direction, lineId 
     })), true);
+  }
+
+  static syncConfigFile2Children() {
+    const configuration = workspace.getConfiguration('realTimeBus');
+    const lineLabels: Array<IBusLine> = configuration.get("lines") || [];
+    lineLabels.forEach(({ label, direction }) => BusLineProvider.addLine(label, direction));
+    this.refreshLines();
   }
 }
