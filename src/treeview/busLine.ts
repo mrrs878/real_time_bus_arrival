@@ -1,11 +1,12 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-12 17:35:45
- * @LastEditTime: 2021-03-26 10:07:15
+ * @LastEditTime: 2021-04-06 10:13:13
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /real-time-bus-arrival/src/treeview/busLine.ts
  */
+import { utils } from 'mocha';
 import { clone } from 'ramda';
 import { TreeItem, TreeItemCollapsibleState, 
   TreeDataProvider, Event, EventEmitter, workspace, ThemeIcon, window, ProgressLocation } from 'vscode';
@@ -143,7 +144,11 @@ export class BusLineProvider implements TreeDataProvider<BusLineTreeItem|BusStop
   static async addLine(label: string, direction = true) {
     try {
       const name = encodeURIComponent(label);
-      const { data } = await getBusBase({ name });
+      const { data, success, msg } = await getBusBase({ name });
+      if (!success) {
+        window.showInformationMessage(msg);
+        return;
+      }
       this.children = [...this.children, new BusLineTreeItem(label, 
         data.line_id, 
         direction, 

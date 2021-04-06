@@ -1,7 +1,7 @@
 /*
  * @Author: mrrs878@foxmail.com
  * @Date: 2021-03-13 11:42:04
- * @LastEditTime: 2021-03-26 09:57:30
+ * @LastEditTime: 2021-04-06 10:18:34
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \real_time_bus_arrival\src\activate\busLine.ts
@@ -21,6 +21,7 @@ export function initBusLine() {
     const value = await window.showInputBox({
       placeHolder: '请输入正确的线路名称',
     });
+    if (!value) {return;}
     BusLineProvider.addLine(value as string);
   });
   commands.registerCommand('realTimeBus.removeLine', (params) => {
